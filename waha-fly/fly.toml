@@ -1,0 +1,22 @@
+# WAHA, deployed as an internal-only Fly app - not exposed to the public
+# internet. Only other Fly apps in the same org can reach it, at
+# whosday-waha.internal:3000 (see whosday-backend/fly.toml's WAHA_URL).
+# Secrets (API key, dashboard/swagger credentials) are set separately via
+# `flyctl secrets set`, not stored here - see ../DEPLOY.md.
+
+app = "whosday-waha"
+primary_region = "cdg"
+
+[build]
+  image = "devlikeapro/waha:latest"
+
+[env]
+  WHATSAPP_DEFAULT_ENGINE = "NOWEB"
+
+[[mounts]]
+  source = "waha_sessions"
+  destination = "/app/.sessions"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"

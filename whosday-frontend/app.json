@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "WhosDay",
+    "slug": "whosday",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#FFFFFF"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.whosday.app"
+    },
+    "android": {
+      "package": "com.whosday.app",
+      "permissions": [
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ]
+    },
+    "plugins": [
+      "expo-asset",
+      "@react-native-community/datetimepicker",
+      "expo-font",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "WhosDay uses your contacts to quickly add birthdays."
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "WhosDay reads your iOS Birthdays calendar to import birthdays automatically."
+        }
+      ],
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f7dee62d-28ff-4186-b972-b903689fbf9e"
+      }
+    },
+    "owner": "tommy07"
+  }
+}

@@ -1,0 +1,40 @@
+services:
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: whosday-waha
+    ports:
+      - "3000:3000"
+    environment:
+      # Pin these (via a root .env file, see .env.example) so WAHA reuses
+      # the same credentials on every restart instead of generating new
+      # ones - which would silently break the backend's WAHA_API_KEY.
+      - WAHA_API_KEY=${WAHA_API_KEY:-}
+      - WAHA_DASHBOARD_USERNAME=${WAHA_DASHBOARD_USERNAME:-}
+      - WAHA_DASHBOARD_PASSWORD=${WAHA_DASHBOARD_PASSWORD:-}
+      - WHATSAPP_SWAGGER_USERNAME=${WHATSAPP_SWAGGER_USERNAME:-}
+      - WHATSAPP_SWAGGER_PASSWORD=${WHATSAPP_SWAGGER_PASSWORD:-}
+      # WEBJS (the default) is currently broken against WhatsApp's latest
+      # web client (QR refresh throws internally). NOWEB doesn't have that
+      # problem - see SETUP_GUIDE.md troubleshooting.
+      - WHATSAPP_DEFAULT_ENGINE=NOWEB
+    volumes:
+      - waha_sessions:/app/.sessions
+    restart: unless-stopped
+
+  backend:
+    build: ./whosday-backend
+    container_name: whosday-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - WAHA_URL=http://waha:3000
+      - WAHA_API_KEY=${WAHA_API_KEY:-}
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
+    depends_on:
+      - waha
+    restart: unless-stopped
+
+volumes:
+  waha_sessions:
