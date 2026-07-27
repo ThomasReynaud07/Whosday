@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { COLORS } from "../theme";
+import { Feather } from "@expo/vector-icons";
+import { COLORS, RADIUS } from "../theme";
+import { useI18n, t } from "../i18n";
+
+// 24-hour locales per app language (avoids the iOS AM/PM picker).
+const LOCALE_24H = { fr: "fr-FR", de: "de-DE", en: "en-GB" };
 
 // UIDatePicker needs an explicit width >= 280pt or it fails to lay itself
 // out correctly on iOS - see DateField.js for the full explanation.
@@ -23,6 +28,7 @@ function dateToHM(date) {
 // Tap the field to reveal a native scrollable time wheel (iOS "spinner" /
 // Android's default clock dialog), instead of typing "HH:MM" by hand.
 export default function TimeField({ value, onChange }) {
+  const { lang } = useI18n();
   const [open, setOpen] = useState(false);
 
   function handleChange(event, date) {
@@ -33,8 +39,10 @@ export default function TimeField({ value, onChange }) {
 
   return (
     <View>
-      <TouchableOpacity style={styles.field} onPress={() => setOpen(true)}>
+      <TouchableOpacity style={styles.field} onPress={() => setOpen(true)} activeOpacity={0.7}>
+        <Feather name="clock" size={17} color={COLORS.faintText} />
         <Text style={styles.value}>{value}</Text>
+        <Feather name="chevron-down" size={16} color={COLORS.faintText} />
       </TouchableOpacity>
 
       {open && (
@@ -43,7 +51,8 @@ export default function TimeField({ value, onChange }) {
             style={styles.picker}
             value={hmToDate(value)}
             mode="time"
-            is24Hour
+            is24Hour={true}
+            locale={LOCALE_24H[lang] || "fr-FR"}
             display={Platform.OS === "ios" ? "spinner" : "default"}
             onChange={handleChange}
           />
@@ -52,7 +61,7 @@ export default function TimeField({ value, onChange }) {
               style={styles.doneButton}
               onPress={() => setOpen(false)}
             >
-              <Text style={styles.doneText}>Done</Text>
+              <Text style={styles.doneText}>{t("common.ok")}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -63,20 +72,25 @@ export default function TimeField({ value, onChange }) {
 
 const styles = StyleSheet.create({
   field: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 10,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 14,
-    paddingVertical: 11,
+    paddingVertical: 14,
   },
-  value: { fontSize: 15, color: COLORS.text, fontWeight: "600" },
+  value: { flex: 1, fontSize: 15, color: COLORS.text, fontWeight: "700" },
   pickerWrap: {
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 10,
+    borderRadius: RADIUS.md,
     marginTop: 8,
     alignItems: "center",
     paddingBottom: 8,
+    backgroundColor: COLORS.surface,
   },
   picker: { width: PICKER_WIDTH },
   doneButton: { paddingVertical: 8, paddingHorizontal: 16 },

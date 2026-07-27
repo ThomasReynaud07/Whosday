@@ -4,17 +4,20 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { supabase } from "../supabase";
-import { COLORS } from "../theme";
+import { COLORS, RADIUS, SHADOWS } from "../theme";
+import { useI18n, t } from "../i18n";
 
 export default function AuthScreen() {
+  useI18n(); // re-render on language change
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +25,7 @@ export default function AuthScreen() {
 
   async function handleSubmit() {
     if (!email || !password) {
-      Alert.alert("Informations manquantes", "Entre ton email et ton mot de passe.");
+      Alert.alert(t("auth.missingTitle"), t("auth.missingMsg"));
       return;
     }
     setLoading(true);
@@ -33,105 +36,150 @@ export default function AuthScreen() {
           : await supabase.auth.signUp({ email, password });
       if (error) throw error;
       if (mode === "signup") {
-        Alert.alert("Vérifie ton email", "Confirme ton adresse pour terminer l'inscription.");
+        Alert.alert(t("auth.checkEmailTitle"), t("auth.checkEmailMsg"));
       }
     } catch (err) {
-      Alert.alert("Erreur", err.message);
+      Alert.alert(t("common.error"), err.message);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <View style={styles.body}>
+    <View style={styles.container}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <View style={styles.badge}>
+            <Feather name="gift" size={34} color="#fff" />
+          </View>
           <Text style={styles.title}>WhosDay</Text>
-          <Text style={styles.subtitle}>
-            {mode === "login" ? "Connecte-toi à ton compte" : "Crée ton compte"}
+          <Text style={styles.tagline}>{t("auth.tagline")}</Text>
+
+          <View style={styles.card}>
+            {/* Segmented login / signup */}
+            <View style={styles.segmented}>
+              <TouchableOpacity
+                style={[styles.segment, mode === "login" && styles.segmentActive]}
+                onPress={() => setMode("login")}
+              >
+                <Text style={[styles.segmentText, mode === "login" && styles.segmentTextActive]}>
+                  {t("auth.login")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.segment, mode === "signup" && styles.segmentActive]}
+                onPress={() => setMode("signup")}
+              >
+                <Text style={[styles.segmentText, mode === "signup" && styles.segmentTextActive]}>
+                  {t("auth.signup")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputRow}>
+              <Feather name="mail" size={17} color={COLORS.faintText} />
+              <TextInput
+                style={styles.input}
+                placeholder={t("auth.email")}
+                placeholderTextColor={COLORS.faintText}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
+            <View style={styles.inputRow}>
+              <Feather name="lock" size={17} color={COLORS.faintText} />
+              <TextInput
+                style={styles.input}
+                placeholder={t("auth.password")}
+                placeholderTextColor={COLORS.faintText}
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.primaryButton}
+              activeOpacity={0.85}
+              disabled={loading}
+              onPress={handleSubmit}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.primaryButtonText}>
+                  {mode === "login" ? t("auth.signIn") : t("auth.createAccount")}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.footerHint}>
+            {mode === "login" ? t("auth.footerLogin") : t("auth.footerSignup")}
           </Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={COLORS.faintText}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Mot de passe"
-            placeholderTextColor={COLORS.faintText}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-
-          <TouchableOpacity
-            style={styles.primaryButton}
-            disabled={loading}
-            onPress={handleSubmit}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.primaryButtonText}>
-                {mode === "login" ? "Se connecter" : "S'inscrire"}
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.switchButton}
-            onPress={() => setMode((m) => (m === "login" ? "signup" : "login"))}
-          >
-            <Text style={styles.switchButtonText}>
-              {mode === "login"
-                ? "Pas encore de compte ? Inscris-toi"
-                : "Déjà un compte ? Connecte-toi"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1, backgroundColor: COLORS.screenBg },
   flex: { flex: 1 },
-  body: { flex: 1, justifyContent: "center", paddingHorizontal: 28 },
-  title: {
-    fontSize: 30,
-    fontWeight: "800",
-    color: COLORS.text,
-    letterSpacing: -0.5,
-    textAlign: "center",
+  scroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 28, paddingVertical: 40 },
+  badge: {
+    width: 78,
+    height: 78,
+    borderRadius: 22,
+    backgroundColor: COLORS.accent,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    marginBottom: 18,
+    ...SHADOWS.accent,
   },
-  subtitle: { fontSize: 14, color: COLORS.subtext, textAlign: "center", marginTop: 6, marginBottom: 28 },
-  input: {
+  title: { fontSize: 32, fontWeight: "800", color: COLORS.text, letterSpacing: -0.6, textAlign: "center" },
+  tagline: { fontSize: 15, color: COLORS.subtext, textAlign: "center", marginTop: 6, marginBottom: 28 },
+  card: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    padding: 20,
+    ...SHADOWS.card,
+  },
+  segmented: {
+    flexDirection: "row",
+    backgroundColor: COLORS.segmentBg,
+    borderRadius: RADIUS.md,
+    padding: 3,
+    marginBottom: 18,
+  },
+  segment: { flex: 1, paddingVertical: 10, borderRadius: RADIUS.sm, alignItems: "center" },
+  segmentActive: { backgroundColor: COLORS.surface, ...SHADOWS.card },
+  segmentText: { fontSize: 14, fontWeight: "700", color: COLORS.subtext },
+  segmentTextActive: { color: COLORS.accent },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 10,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 10,
-    fontSize: 15,
-    color: COLORS.text,
+    marginBottom: 12,
+    backgroundColor: COLORS.surface,
   },
+  input: { flex: 1, paddingVertical: 14, fontSize: 15, color: COLORS.text },
   primaryButton: {
     backgroundColor: COLORS.accent,
-    borderRadius: 10,
-    paddingVertical: 14,
+    borderRadius: RADIUS.md,
+    paddingVertical: 16,
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 6,
+    ...SHADOWS.accent,
   },
-  primaryButtonText: { color: "#fff", fontWeight: "700", fontSize: 15 },
-  switchButton: { marginTop: 18, alignItems: "center" },
-  switchButtonText: { color: COLORS.accent, fontWeight: "600", fontSize: 13 },
+  primaryButtonText: { color: "#fff", fontWeight: "800", fontSize: 16 },
+  footerHint: { fontSize: 13, color: COLORS.faintText, textAlign: "center", marginTop: 22, lineHeight: 19 },
 });

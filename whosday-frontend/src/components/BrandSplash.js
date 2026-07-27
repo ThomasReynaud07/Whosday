@@ -1,7 +1,8 @@
 import React from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { COLORS } from "../theme";
+import { COLORS, SHADOWS } from "../theme";
+import { t } from "../i18n";
 
 // Shown while the app boots (auth session restore, etc.) - takes over
 // immediately as the native splash screen hides, so there's no flash of
@@ -13,7 +14,7 @@ export default function BrandSplash() {
         <Feather name="gift" size={36} color="#fff" />
       </View>
       <Text style={styles.title}>WhosDay</Text>
-      <Text style={styles.subtitle}>N'oublie plus jamais un anniversaire</Text>
+      <Text style={styles.subtitle}>{t("auth.tagline")}</Text>
       <ActivityIndicator style={styles.spinner} color={COLORS.faintText} />
     </View>
   );
@@ -24,16 +25,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.screenBg,
   },
   badge: {
-    width: 76,
-    height: 76,
-    borderRadius: 22,
+    width: 84,
+    height: 84,
+    borderRadius: 24,
     backgroundColor: COLORS.accent,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 18,
+    marginBottom: 20,
+    ...SHADOWS.accent,
   },
   title: {
     fontSize: 28,

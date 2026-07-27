@@ -1,0 +1,50 @@
+name: CI
+
+# Fast sanity checks so bugs like a missing require (e.g. "axios is not
+# defined") are caught before they ever reach production.
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend syntax check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: whosday-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: whosday-backend/package-lock.json
+      - run: npm ci
+      - name: node --check every .js file
+        run: |
+          set -e
+          for f in $(git ls-files '*.js'); do
+            node --check "$f"
+          done
+          echo "All backend .js files parse OK"
+
+  frontend:
+    name: Frontend bundle
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: whosday-frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: whosday-frontend/package-lock.json
+      - run: npm ci
+      # A full Metro export compiles every module, so any bad import or syntax
+      # error fails the build here instead of on a device.
+      - name: expo export (iOS)
+        run: npx expo export --platform ios --output-dir /tmp/export

@@ -11,7 +11,16 @@ primary_region = "cdg"
   image = "devlikeapro/waha:latest"
 
 [env]
-  WHATSAPP_DEFAULT_ENGINE = "NOWEB"
+  # GOWS (Go/whatsmeow) is browserless like NOWEB (cheap, hundreds of sessions
+  # per machine) but a different codebase - it should send media reliably,
+  # unlike NOWEB whose media upload to WhatsApp's servers is broken.
+  WHATSAPP_DEFAULT_ENGINE = "GOWS"
+  # Keep users' phones receiving WhatsApp notifications. By default WAHA
+  # marks the linked account "online", which makes WhatsApp treat it as an
+  # active device and stop pushing notifications to the phone. Disabling
+  # auto-online (plus markOnline:false at session start, see waha.js) leaves
+  # the phone as the primary, notified device.
+  WAHA_PRESENCE_AUTO_ONLINE = "False"
 
 [[mounts]]
   source = "waha_sessions"

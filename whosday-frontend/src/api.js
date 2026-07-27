@@ -1,5 +1,6 @@
 import axios from "axios";
 import { supabase } from "./supabase";
+import { t } from "./i18n";
 
 // The backend only handles what has to talk to WAHA (not reachable
 // directly from the phone). Everything else goes straight to Supabase,
@@ -25,10 +26,19 @@ async function currentUserId() {
 // "FREE_LIMIT_REACHED:" prefix (see supabase/0002_push_notifications.sql)
 // so it can be turned into a friendly, translated message here instead of
 // showing raw Postgres error text.
+// Free plan cap - kept in sync with the DB trigger in
+// supabase/0002_push_notifications.sql.
+export const FREE_LIMIT = 5;
+
+export function isFreeLimitError(err) {
+  const raw = err?.response?.data?.error || err?.message || String(err);
+  return raw.includes("FREE_LIMIT_REACHED");
+}
+
 export function friendlyErrorMessage(err) {
   const raw = err?.response?.data?.error || err?.message || String(err);
-  if (raw.includes("FREE_LIMIT_REACHED")) {
-    return "Tu as atteint la limite du plan gratuit (5 anniversaires). Passe au plan payant pour en ajouter plus.";
+  if (isFreeLimitError(err)) {
+    return t("err.freeLimit", { limit: FREE_LIMIT });
   }
   return raw;
 }
@@ -41,6 +51,12 @@ function rowToBirthday(row) {
     month: row.month,
     day: row.day,
     message: row.message,
+    sendTime: row.send_time || "09:00",
+    birthYear: row.birth_year ?? null,
+    photoUrl: row.photo_url ?? null,
+    mediaUrl: row.media_url ?? null,
+    mediaType: row.media_type ?? null,
+    mediaPreviewUrl: row.media_preview_url ?? null,
     createdAt: row.created_at,
   };
 }
@@ -67,6 +83,12 @@ export const api = {
         month: payload.month,
         day: payload.day,
         message: payload.message,
+        send_time: payload.sendTime ?? "09:00",
+        birth_year: payload.birthYear ?? null,
+        photo_url: payload.photoUrl ?? null,
+        media_url: payload.mediaUrl ?? null,
+        media_type: payload.mediaType ?? null,
+        media_preview_url: payload.mediaPreviewUrl ?? null,
       })
       .select()
       .single();
@@ -83,6 +105,16 @@ export const api = {
         month: payload.month,
         day: payload.day,
         message: payload.message,
+        send_time: payload.sendTime,
+        birth_year: payload.birthYear,
+        photo_url: payload.photoUrl ?? null,
+        media_url: payload.mediaUrl ?? null,
+        media_type: payload.mediaType ?? null,
+        media_preview_url: payload.mediaPreviewUrl ?? null,
+        // Re-arm today's send: if you edit a birthday (e.g. change the time),
+        // it should be eligible to go out again today instead of staying
+        // blocked by the once-a-day guard from an earlier send.
+        last_sent_date: null,
       })
       .eq("id", id)
       .select()
@@ -101,35 +133,59 @@ export const api = {
     return axios.post(`${BACKEND_URL}/birthdays/${id}/send`, {}, { headers });
   },
 
-  async getSettings() {
+  async getProfile() {
     const user_id = await currentUserId();
     const { data, error } = await supabase
-      .from("settings")
-      .select("*")
-      .eq("user_id", user_id)
+      .from("profiles")
+      .select("is_pro, pro_expires_at, avatar_url")
+      .eq("id", user_id)
       .single();
     if (error) throw error;
     return {
-      sendMode: data.send_mode,
-      fixedTime: data.fixed_time,
-      randomWindowStart: data.random_window_start,
-      randomWindowEnd: data.random_window_end,
-      todayTargetTime: data.today_target_time,
+      isPro: Boolean(data.is_pro),
+      proExpiresAt: data.pro_expires_at,
+      avatarUrl: data.avatar_url ?? null,
     };
   },
 
-  async updateSettings(payload) {
+  // Save the device's IANA timezone (e.g. "Europe/Zurich") so the backend
+  // scheduler sends birthday messages at the user's real local time.
+  async syncTimezone() {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (!tz) return;
+      const user_id = await currentUserId();
+      await supabase.from("profiles").update({ timezone: tz }).eq("id", user_id);
+    } catch {
+      // best-effort - a missing timezone just falls back to Europe/Paris server-side
+    }
+  },
+
+  async deleteAccount() {
+    const headers = await authHeader();
+    await axios.post(`${BACKEND_URL}/account/delete`, {}, { headers });
+    await supabase.auth.signOut();
+  },
+
+  async updateAvatar(avatarUrl) {
     const user_id = await currentUserId();
     const { error } = await supabase
-      .from("settings")
-      .update({
-        send_mode: payload.sendMode,
-        fixed_time: payload.fixedTime,
-        random_window_start: payload.randomWindowStart,
-        random_window_end: payload.randomWindowEnd,
-      })
-      .eq("user_id", user_id);
+      .from("profiles")
+      .update({ avatar_url: avatarUrl })
+      .eq("id", user_id);
     if (error) throw error;
+  },
+
+  currentUserId,
+
+  async generateMessage({ name, tone, lang, prompt }) {
+    const headers = await authHeader();
+    const { data } = await axios.post(
+      `${BACKEND_URL}/generate-message`,
+      { name, tone, lang, prompt },
+      { headers },
+    );
+    return data.message;
   },
 
   async getMessagesSent() {

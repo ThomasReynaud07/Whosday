@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Feather } from "@expo/vector-icons";
-import { COLORS } from "../theme";
-
-const FORMATTER = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long" });
+import { COLORS, RADIUS } from "../theme";
+import { useI18n, t } from "../i18n";
 
 // UIDatePicker needs an explicit width >= 280pt or it fails to lay itself
 // out correctly on iOS (known issue with this library on RN's New
@@ -23,8 +22,10 @@ function toDate(month, day) {
 // hand. The year is shown (native pickers don't support hiding it) but only
 // month + day are ever read back - birthdays repeat every year.
 export default function DateField({ month, day, onChange }) {
+  const { lang } = useI18n();
   const [open, setOpen] = useState(false);
   const hasValue = Boolean(month && day);
+  const formatter = new Intl.DateTimeFormat(lang, { day: "numeric", month: "long" });
 
   function handleChange(event, date) {
     if (Platform.OS === "android") setOpen(false);
@@ -35,10 +36,11 @@ export default function DateField({ month, day, onChange }) {
   return (
     <View>
       <TouchableOpacity style={styles.field} onPress={() => setOpen(true)}>
-        <Feather name="calendar" size={16} color={COLORS.faintText} />
+        <Feather name="gift" size={17} color={COLORS.faintText} />
         <Text style={hasValue ? styles.value : styles.placeholder}>
-          {hasValue ? FORMATTER.format(toDate(month, day)) : "Date de naissance"}
+          {hasValue ? formatter.format(toDate(month, day)) : t("form.chooseDate")}
         </Text>
+        <Feather name="chevron-down" size={16} color={COLORS.faintText} />
       </TouchableOpacity>
 
       {open && (
@@ -48,7 +50,7 @@ export default function DateField({ month, day, onChange }) {
             value={toDate(month, day)}
             mode="date"
             display={Platform.OS === "ios" ? "spinner" : "default"}
-            locale="fr-FR"
+            locale={lang}
             onChange={handleChange}
           />
           {Platform.OS === "ios" && (
@@ -66,16 +68,17 @@ const styles = StyleSheet.create({
   field: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 10,
+    borderRadius: RADIUS.md,
     paddingHorizontal: 14,
-    paddingVertical: 11,
+    paddingVertical: 14,
     marginBottom: 10,
   },
-  value: { fontSize: 15, color: COLORS.text, fontWeight: "600" },
-  placeholder: { fontSize: 15, color: COLORS.faintText },
+  value: { flex: 1, fontSize: 15, color: COLORS.text, fontWeight: "700" },
+  placeholder: { flex: 1, fontSize: 15, color: COLORS.faintText },
   pickerWrap: {
     borderWidth: 1,
     borderColor: COLORS.border,
