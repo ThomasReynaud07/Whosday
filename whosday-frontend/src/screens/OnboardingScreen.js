@@ -1,18 +1,21 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { COLORS, RADIUS, SHADOWS } from "../theme";
+import { useTheme, RADIUS, SHADOWS } from "../theme";
 import { t } from "../i18n";
 
 // First-launch intro. Three slides explaining the promise, the WhatsApp link,
-// and adding a birthday. Shown once (a flag is stored by the caller).
+// and adding a birthday. Shown once (a flag is stored by the caller). Colors
+// are stored as theme keys and resolved against the active palette.
 const SLIDES = [
-  { icon: "gift", color: COLORS.accent, bg: COLORS.accentSoft, titleKey: "onb.t1", descKey: "onb.d1" },
-  { icon: "message-circle", color: COLORS.success, bg: COLORS.successSoft, titleKey: "onb.t2", descKey: "onb.d2" },
-  { icon: "clock", color: COLORS.celebrate, bg: COLORS.celebrateSoft, titleKey: "onb.t3", descKey: "onb.d3" },
+  { icon: "gift", colorKey: "accent", bgKey: "accentSoft", titleKey: "onb.t1", descKey: "onb.d1" },
+  { icon: "message-circle", colorKey: "success", bgKey: "successSoft", titleKey: "onb.t2", descKey: "onb.d2" },
+  { icon: "clock", colorKey: "celebrate", bgKey: "celebrateSoft", titleKey: "onb.t3", descKey: "onb.d3" },
 ];
 
 export default function OnboardingScreen({ onDone }) {
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const [index, setIndex] = useState(0);
   const slide = SLIDES[index];
   const isLast = index === SLIDES.length - 1;
@@ -35,8 +38,8 @@ export default function OnboardingScreen({ onDone }) {
       </View>
 
       <View style={styles.hero}>
-        <View style={[styles.iconCircle, { backgroundColor: slide.bg }]}>
-          <Feather name={slide.icon} size={54} color={slide.color} />
+        <View style={[styles.iconCircle, { backgroundColor: COLORS[slide.bgKey] }]}>
+          <Feather name={slide.icon} size={54} color={COLORS[slide.colorKey]} />
         </View>
         <Text style={styles.title}>{t(slide.titleKey)}</Text>
         <Text style={styles.desc}>{t(slide.descKey)}</Text>
@@ -56,7 +59,7 @@ export default function OnboardingScreen({ onDone }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.screenBg },
   topBar: { height: 44, justifyContent: "center", alignItems: "flex-end", paddingHorizontal: 22 },
   skip: { color: COLORS.subtext, fontWeight: "700", fontSize: 15 },

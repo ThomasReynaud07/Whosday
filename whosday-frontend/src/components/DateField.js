@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Feather } from "@expo/vector-icons";
-import { COLORS, RADIUS } from "../theme";
+import { useTheme, RADIUS } from "../theme";
 import { useI18n, t } from "../i18n";
 
 // UIDatePicker needs an explicit width >= 280pt or it fails to lay itself
@@ -23,6 +23,8 @@ function toDate(month, day) {
 // month + day are ever read back - birthdays repeat every year.
 export default function DateField({ month, day, onChange }) {
   const { lang } = useI18n();
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const [open, setOpen] = useState(false);
   const hasValue = Boolean(month && day);
   const formatter = new Intl.DateTimeFormat(lang, { day: "numeric", month: "long" });
@@ -64,7 +66,7 @@ export default function DateField({ month, day, onChange }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   field: {
     flexDirection: "row",
     alignItems: "center",

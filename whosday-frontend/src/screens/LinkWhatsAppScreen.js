@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import axios from "axios";
 import { BACKEND_URL, authHeader } from "../api";
-import { COLORS } from "../theme";
+import { useTheme } from "../theme";
 import { useI18n, t } from "../i18n";
 
 // Shown right after signup/login until the user's own WhatsApp is linked
@@ -27,6 +27,8 @@ import { useI18n, t } from "../i18n";
 //  - QR (fallback): scan from another device with a camera.
 export default function LinkWhatsAppScreen({ onLinked, onClose }) {
   useI18n(); // re-render on language change
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const [status, setStatus] = useState("checking");
   const [method, setMethod] = useState("code"); // "code" | "qr"
   const [phone, setPhone] = useState("");
@@ -229,8 +231,8 @@ export default function LinkWhatsAppScreen({ onLinked, onClose }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+const makeStyles = (COLORS) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.screenBg },
   flex: { flex: 1 },
   closeButton: { alignSelf: "flex-end", padding: 16 },
   closeText: { color: COLORS.subtext, fontSize: 15 },
@@ -247,7 +249,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   segment: { flex: 1, paddingVertical: 9, borderRadius: 7, alignItems: "center" },
-  segmentActive: { backgroundColor: "#fff" },
+  segmentActive: { backgroundColor: COLORS.surface },
   segmentText: { fontSize: 14, fontWeight: "600", color: COLORS.subtext },
   segmentTextActive: { color: COLORS.text },
   fieldLabel: {

@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { COLORS, SHADOWS } from "../theme";
+import { useTheme, SHADOWS } from "../theme";
 import { t } from "../i18n";
 
 // Shown while the app boots (auth session restore, etc.) - takes over
 // immediately as the native splash screen hides, so there's no flash of
 // blank white in between.
 export default function BrandSplash() {
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   return (
     <View style={styles.container}>
       <View style={styles.badge}>
@@ -20,7 +22,7 @@ export default function BrandSplash() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",

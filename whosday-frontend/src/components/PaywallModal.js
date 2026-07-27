@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -10,13 +10,15 @@ import {
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { COLORS, RADIUS, SHADOWS } from "../theme";
+import { useTheme, RADIUS, SHADOWS } from "../theme";
 import { FREE_LIMIT } from "../api";
 import { purchasePro, restorePurchases } from "../purchases";
 import { useI18n, t } from "../i18n";
 
 export default function PaywallModal({ visible, onClose, onSubscribed, priceText = "CHF 4.90 / mois" }) {
   useI18n(); // re-render on language change
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const [busy, setBusy] = useState(false);
 
   const benefits = [
@@ -109,7 +111,7 @@ export default function PaywallModal({ visible, onClose, onSubscribed, priceText
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.surface },
   close: { alignSelf: "flex-end", padding: 16 },
   body: { flex: 1, paddingHorizontal: 28, alignItems: "center", justifyContent: "center" },

@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS, RADIUS, SHADOWS } from "../theme";
+import { useTheme, RADIUS, SHADOWS } from "../theme";
 
 // The signature "hero" band at the top of each tab: a full-bleed indigo
 // panel (extends under the status bar) with a big rounded bottom edge and
@@ -9,6 +9,8 @@ import { COLORS, RADIUS, SHADOWS } from "../theme";
 // edge of the band - used for the search field on the Birthdays screen.
 export default function ScreenHeader({ title, subtitle, right, overlap }) {
   const insets = useSafeAreaInsets();
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   return (
     <View style={styles.wrap}>
       <View style={[styles.hero, { paddingTop: insets.top + 14 }]}>
@@ -26,7 +28,7 @@ export default function ScreenHeader({ title, subtitle, right, overlap }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   wrap: { backgroundColor: COLORS.screenBg },
   hero: {
     backgroundColor: COLORS.accent,

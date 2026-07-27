@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -12,12 +12,14 @@ import {
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { COLORS, RADIUS } from "../theme";
+import { useTheme, RADIUS } from "../theme";
 import { t } from "../i18n";
 import { searchGifs, GIPHY_READY } from "../giphy";
 
 // Full-screen GIPHY search. onSelect receives { mp4, preview }.
 export default function GifPickerModal({ visible, onClose, onSelect }) {
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const [query, setQuery] = useState("");
   const [gifs, setGifs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -96,7 +98,7 @@ export default function GifPickerModal({ visible, onClose, onSelect }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.screenBg },
   header: {
     flexDirection: "row",

@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Feather } from "@expo/vector-icons";
-import { COLORS, RADIUS } from "../theme";
+import { useTheme, RADIUS } from "../theme";
 import { useI18n, t } from "../i18n";
 
 // 24-hour locales per app language (avoids the iOS AM/PM picker).
@@ -29,6 +29,8 @@ function dateToHM(date) {
 // Android's default clock dialog), instead of typing "HH:MM" by hand.
 export default function TimeField({ value, onChange }) {
   const { lang } = useI18n();
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const [open, setOpen] = useState(false);
 
   function handleChange(event, date) {
@@ -70,7 +72,7 @@ export default function TimeField({ value, onChange }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   field: {
     flexDirection: "row",
     alignItems: "center",

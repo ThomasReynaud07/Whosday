@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import * as Contacts from "expo-contacts";
 import { Feather } from "@expo/vector-icons";
-import { COLORS, RADIUS, SHADOWS } from "../theme";
+import { useTheme, RADIUS, SHADOWS } from "../theme";
 import { useI18n, t, getTemplates } from "../i18n";
 import { api } from "../api";
 import { pickImage, uploadImage } from "../media";
@@ -27,6 +27,8 @@ import TimeField from "./TimeField";
 import GifPickerModal from "./GifPickerModal";
 
 function SectionLabel({ icon, children }) {
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   return (
     <View style={styles.sectionRow}>
       <Feather name={icon} size={13} color={COLORS.accent} />
@@ -51,6 +53,8 @@ const EMPTY_FORM = {
 
 export default function BirthdayFormModal({ visible, initialValues, onClose, onSubmit, onDelete }) {
   const { lang } = useI18n();
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [mediaBusy, setMediaBusy] = useState(false);
   const [gifPickerVisible, setGifPickerVisible] = useState(false);
@@ -445,7 +449,7 @@ export default function BirthdayFormModal({ visible, initialValues, onClose, onS
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.screenBg },
   flex: { flex: 1 },
   header: {

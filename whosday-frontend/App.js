@@ -16,7 +16,7 @@ import OnboardingScreen from "./src/screens/OnboardingScreen";
 import BrandSplash from "./src/components/BrandSplash";
 import { registerForPushNotifications } from "./src/pushNotifications";
 import { api } from "./src/api";
-import { COLORS } from "./src/theme";
+import { ThemeProvider, useTheme } from "./src/theme";
 import { I18nProvider, useI18n } from "./src/i18n";
 
 // Keep the native splash up until BrandSplash (a JS view with the same
@@ -27,6 +27,7 @@ const Tab = createBottomTabNavigator();
 
 function MainTabs() {
   const { t } = useI18n();
+  const COLORS = useTheme();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -79,6 +80,7 @@ function MainTabs() {
 
 function Root() {
   const { session, loading } = useAuth();
+  const COLORS = useTheme();
   const userId = session?.user?.id;
   const [linked, setLinked] = useState(false);
   const [checkingLink, setCheckingLink] = useState(true);
@@ -153,7 +155,7 @@ function Root() {
 
   return (
     <>
-      <StatusBar style={onHero ? "light" : "dark"} />
+      <StatusBar style={onHero || COLORS.isDark ? "light" : "dark"} />
       {content}
     </>
   );
@@ -161,12 +163,14 @@ function Root() {
 
 export default function App() {
   return (
-    <I18nProvider>
-      <AuthProvider>
-        <NavigationContainer>
-          <Root />
-        </NavigationContainer>
-      </AuthProvider>
-    </I18nProvider>
+    <ThemeProvider>
+      <I18nProvider>
+        <AuthProvider>
+          <NavigationContainer>
+            <Root />
+          </NavigationContainer>
+        </AuthProvider>
+      </I18nProvider>
+    </ThemeProvider>
   );
 }

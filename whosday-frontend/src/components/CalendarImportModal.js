@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,7 +13,7 @@ import {
 import * as Calendar from "expo-calendar";
 import * as Contacts from "expo-contacts";
 import { Feather } from "@expo/vector-icons";
-import { COLORS, RADIUS, SHADOWS } from "../theme";
+import { useTheme, RADIUS, SHADOWS } from "../theme";
 import { useI18n, t, getTemplates } from "../i18n";
 import Avatar from "./Avatar";
 
@@ -31,6 +31,8 @@ function cleanPhone(number) {
 // so we cross-reference Contacts by name to fill in phone numbers).
 export default function CalendarImportModal({ visible, onClose, onImport }) {
   const { lang } = useI18n();
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const [source, setSource] = useState("contacts"); // "contacts" | "calendar"
   const [loading, setLoading] = useState(false);
   const [candidates, setCandidates] = useState([]);
@@ -289,7 +291,7 @@ export default function CalendarImportModal({ visible, onClose, onImport }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.screenBg },
   header: {
     flexDirection: "row",

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,11 +13,13 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { supabase } from "../supabase";
-import { COLORS, RADIUS, SHADOWS } from "../theme";
+import { useTheme, RADIUS, SHADOWS } from "../theme";
 import { useI18n, t } from "../i18n";
 
 export default function AuthScreen() {
   useI18n(); // re-render on language change
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -126,7 +128,7 @@ export default function AuthScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.screenBg },
   flex: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 28, paddingVertical: 40 },

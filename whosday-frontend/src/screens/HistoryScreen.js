@@ -1,9 +1,9 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, SectionList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import { api } from "../api";
-import { COLORS, RADIUS, SHADOWS } from "../theme";
+import { useTheme, RADIUS, SHADOWS } from "../theme";
 import Avatar from "../components/Avatar";
 import ScreenHeader from "../components/ScreenHeader";
 import { useI18n, t } from "../i18n";
@@ -40,6 +40,8 @@ function buildSections(messages, lang) {
 
 export default function HistoryScreen() {
   const { lang } = useI18n();
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const [messages, setMessages] = useState([]);
   const [initialLoad, setInitialLoad] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -149,7 +151,7 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.screenBg },
   list: { flex: 1 },
   listContent: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 32 },

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -14,7 +14,7 @@ import axios from "axios";
 import { supabase } from "../supabase";
 import { useAuth } from "../AuthContext";
 import { api, BACKEND_URL, authHeader } from "../api";
-import { COLORS, RADIUS, SHADOWS } from "../theme";
+import { useTheme, useThemePref, RADIUS, SHADOWS } from "../theme";
 import Avatar from "../components/Avatar";
 import ScreenHeader from "../components/ScreenHeader";
 import PaywallModal from "../components/PaywallModal";
@@ -27,6 +27,9 @@ import { TERMS_TEXT, PRIVACY_TEXT } from "../legal";
 export default function ProfileScreen() {
   const { user } = useAuth();
   const { lang, setLang } = useI18n();
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
+  const { pref: themePref, setPref: setThemePref } = useThemePref();
   const [wahaStatus, setWahaStatus] = useState("checking");
   const [relinkVisible, setRelinkVisible] = useState(false);
   const [isPro, setIsPro] = useState(false);
@@ -117,6 +120,28 @@ export default function ProfileScreen() {
       ],
     );
   }
+
+  const THEME_OPTIONS = [
+    { key: "system", label: t("prof.themeSystem") },
+    { key: "light", label: t("prof.themeLight") },
+    { key: "dark", label: t("prof.themeDark") },
+  ];
+
+  function chooseTheme() {
+    Alert.alert(
+      t("prof.appearance"),
+      undefined,
+      [
+        ...THEME_OPTIONS.map((o) => ({
+          text: o.label + (o.key === themePref ? "  ✓" : ""),
+          onPress: () => setThemePref(o.key),
+        })),
+        { text: t("common.cancel"), style: "cancel" },
+      ],
+    );
+  }
+
+  const currentThemeLabel = THEME_OPTIONS.find((o) => o.key === themePref)?.label || "";
 
   const isWorking = wahaStatus === "WORKING";
   const currentLangLabel = LANGUAGES.find((l) => l.code === lang)?.label || lang;
@@ -209,6 +234,18 @@ export default function ProfileScreen() {
           <Feather name="chevron-right" size={18} color={COLORS.faintText} />
         </TouchableOpacity>
 
+        {/* Appearance (light / dark / system) */}
+        <TouchableOpacity style={styles.row} activeOpacity={0.7} onPress={chooseTheme}>
+          <View style={[styles.rowIcon, { backgroundColor: COLORS.accentSoft }]}>
+            <Feather name={COLORS.isDark ? "moon" : "sun"} size={17} color={COLORS.accent} />
+          </View>
+          <View style={styles.rowInfo}>
+            <Text style={styles.rowTitle}>{t("prof.appearance")}</Text>
+            <Text style={styles.rowSub}>{currentThemeLabel}</Text>
+          </View>
+          <Feather name="chevron-right" size={18} color={COLORS.faintText} />
+        </TouchableOpacity>
+
         <Text style={styles.sectionLabel}>{t("prof.legal")}</Text>
 
         {/* Terms of use */}
@@ -278,7 +315,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.screenBg },
   body: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
   identityCard: {

@@ -12,7 +12,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { api, friendlyErrorMessage, isFreeLimitError } from "../api";
-import { COLORS, RADIUS, SHADOWS } from "../theme";
+import { useTheme, RADIUS, SHADOWS } from "../theme";
 import Avatar from "../components/Avatar";
 import ScreenHeader from "../components/ScreenHeader";
 import BirthdayFormModal from "../components/BirthdayFormModal";
@@ -76,6 +76,8 @@ function buildSections(list, lang) {
 
 export default function BirthdaysScreen() {
   const { lang } = useI18n();
+  const COLORS = useTheme();
+  const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const [birthdays, setBirthdays] = useState([]);
   const [initialLoad, setInitialLoad] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -386,7 +388,7 @@ export default function BirthdaysScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (COLORS) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.screenBg },
   importChip: {
     flexDirection: "row",
